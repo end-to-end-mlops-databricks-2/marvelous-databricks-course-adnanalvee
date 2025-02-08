@@ -1,13 +1,17 @@
-import yaml
 import logging
+
 import pandas as pd
-from src.house_price.data_processor import DataProcessor
-from src.house_price.config import ProjectConfig
+import yaml
 from pyspark.sql import SparkSession
+
+from src.house_price.config import ProjectConfig
+from src.house_price.data_processor import DataProcessor
 
 spark = SparkSession.builder.getOrCreate()
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 config = ProjectConfig.from_yaml(config_path="project_config.yml")

@@ -8,7 +8,7 @@ parameters:
   max_depth: 6
 
 num_features:
-  - LotFrontage 
+  - LotFrontage
   - LotArea
   - OverallQual
   - OverallCond

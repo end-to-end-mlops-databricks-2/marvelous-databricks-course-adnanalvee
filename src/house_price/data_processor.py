@@ -20,7 +20,9 @@ class DataProcessor:
 
         # Convert GarageYrBlt only if it exists
         if "GarageYrBlt" in self.df.columns:
-            self.df.loc[:, "GarageYrBlt"] = pd.to_numeric(self.df["GarageYrBlt"], errors="coerce")
+            self.df.loc[:, "GarageYrBlt"] = pd.to_numeric(
+                self.df["GarageYrBlt"], errors="coerce"
+            )
             median_year = self.df["GarageYrBlt"].median()
             self.df.loc[:, "GarageYrBlt"] = self.df["GarageYrBlt"].fillna(median_year)
             current_year = datetime.now().year
@@ -28,7 +30,6 @@ class DataProcessor:
             self.df.drop(columns=["GarageYrBlt"], inplace=True)
         else:
             print("WARNING: 'GarageYrBlt' column not found. Skipping this step.")
-
 
         # Handle numeric features
         num_features = self.config.num_features
@@ -58,10 +59,14 @@ class DataProcessor:
 
     def split_data(self, test_size=0.2, random_state=42):
         """Split the DataFrame (self.df) into training and test sets."""
-        train_set, test_set = train_test_split(self.df, test_size=test_size, random_state=random_state)
+        train_set, test_set = train_test_split(
+            self.df, test_size=test_size, random_state=random_state
+        )
         return train_set, test_set
 
-    def save_to_catalog(self, train_set: pd.DataFrame, test_set: pd.DataFrame, spark: SparkSession):
+    def save_to_catalog(
+        self, train_set: pd.DataFrame, test_set: pd.DataFrame, spark: SparkSession
+    ):
         """Save the train and test sets into Databricks tables."""
 
         train_set_with_timestamp = spark.createDataFrame(train_set).withColumn(
