@@ -3,8 +3,9 @@ import logging
 import pandas as pd
 from src.house_price.data_processor import DataProcessor
 from src.house_price.config import ProjectConfig
+from pyspark.sql import SparkSession
 
-
+spark = SparkSession.builder.getOrCreate()
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -33,4 +34,4 @@ logger.info("Training set shape: %s", X_train.shape)
 logger.info("Test set shape: %s", X_test.shape)
 
 logger.info("saving to catalog")
-data_processor.save_to_catalog(X_train, X_test)
+data_processor.save_to_catalog(X_train, X_test, spark)
