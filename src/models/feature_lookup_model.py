@@ -14,10 +14,10 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
-from house_price.config import ProjectConfig, Tags
+from src.house_price.config import ProjectConfig, Tags
 
-class FeatureLookupModel:
 
+class FeatureLookUpModel:
     def __init__(self, config: ProjectConfig, tags: Tags, spark: SparkSession):
         """
         Initialize the model with project configuration.
@@ -35,11 +35,11 @@ class FeatureLookupModel:
         self.catalog_name = self.config.catalog_name
         self.schema_name = self.config.schema_name
 
-        # define table names and function name
+        # Define table names and function name
         self.feature_table_name = f"{self.catalog_name}.{self.schema_name}.house_features"
         self.function_name = f"{self.catalog_name}.{self.schema_name}.calculate_house_age"
 
-        # MLFlow configuration
+        # MLflow configuration
         self.experiment_name = self.config.experiment_name_fe
         self.tags = tags.dict()
 
@@ -51,7 +51,6 @@ class FeatureLookupModel:
         CREATE OR REPLACE TABLE {self.feature_table_name}
         (Id STRING NOT NULL, OverallQual INT, GrLivArea INT, GarageCars INT);
         """)
-
         self.spark.sql(f"ALTER TABLE {self.feature_table_name} ADD CONSTRAINT house_pk PRIMARY KEY(Id);")
         self.spark.sql(f"ALTER TABLE {self.feature_table_name} SET TBLPROPERTIES (delta.enableChangeDataFeed = true);")
 
@@ -63,8 +62,7 @@ class FeatureLookupModel:
         )
         logger.info("✅ Feature table created and populated.")
 
-
-    def feature_function(self):
+    def define_feature_function(self):
         """
         Define a function to calculate the house's age.
         """
@@ -79,7 +77,10 @@ class FeatureLookupModel:
         """)
         logger.info("✅ Feature function defined.")
 
-    def load_date(self):
+    def load_data(self):
+        """
+        Load training and testing data from Delta tables.
+        """
         self.train_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.train_set").drop(
             "OverallQual", "GrLivArea", "GarageCars"
         )
@@ -89,7 +90,6 @@ class FeatureLookupModel:
         self.train_set = self.train_set.withColumn("Id", self.train_set["Id"].cast("string"))
 
         logger.info("✅ Data successfully loaded.")
-
 
     def feature_engineering(self):
         """
@@ -112,7 +112,18 @@ class FeatureLookupModel:
             ],
             exclude_columns=["update_timestamp_utc"],
         )
-    
+
+        self.training_df = self.training_set.load_df().toPandas()
+        current_year = datetime.now().year
+        self.test_set["house_age"] = current_year - self.test_set["YearBuilt"]
+
+        self.X_train = self.training_df[self.num_features + self.cat_features + ["house_age"]]
+        self.y_train = self.training_df[self.target]
+        self.X_test = self.test_set[self.num_features + self.cat_features + ["house_age"]]
+        self.y_test = self.test_set[self.target]
+
+        logger.info("✅ Feature engineering completed.")
+
     def train(self):
         """
         Train the model and log results to MLflow.
