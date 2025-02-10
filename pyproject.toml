@@ -35,18 +35,9 @@ build-backend = "setuptools.build_meta"
 where =["src"]
 include = ["house_price*"]
 
-[tool.ruff]
-line-length = 120
-select = [
-    "F",  # pyflakes rules
-    "E",  # pycodestyle error rules
-    "W",  # pycodestyle warning rules
-    "B",  # flake8-bugbear rules
-    "I",  # isort rules
-]
-ignore = [
-    "E501",  # line-too-long
-]
+[tool.ruff.lint]
+ignore = ["I001", "E501"]
+select = ["E", "F", "W"]
 
 [tool.ruff.format]
 indent-style = "space"
