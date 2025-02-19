@@ -1,10 +1,15 @@
+from databricks import feature_engineering
 from databricks.feature_engineering import FeatureLookup
 from databricks.sdk import WorkspaceClient
 from databricks.sdk.service.catalog import (
+    OnlineTable,
     OnlineTableSpec,
     OnlineTableSpecTriggeredSchedulingPolicy,
 )
 from databricks.sdk.service.serving import EndpointCoreConfigInput, ServedEntityInput
+
+
+
 
 
 class FeatureServing:
@@ -16,6 +21,8 @@ class FeatureServing:
         self.workspace = WorkspaceClient()
         self.feature_spec_name = feature_spec_name
         self.endpoint_name = endpoint_name
+        self.online_table_name = f"{self.feature_table_name}_online"
+        self.fe = feature_engineering.FeatureEngineeringClient()
 
     def create_online_table(self):
         """
@@ -23,11 +30,18 @@ class FeatureServing:
         """
         spec = OnlineTableSpec(
             primary_key_columns=["Id"],
-            source_table_full_name=f"{self.feature_table_name}_online",
+            source_table_full_name=self.feature_table_name,
             run_triggered=OnlineTableSpecTriggeredSchedulingPolicy.from_dict({"triggered": "true"}),
             perform_full_copy=False,
         )
-        self.workspace.online_tables.create(name=self.online_table_name, spec=spec)
+
+        online_table = OnlineTable(
+            name=self.online_table_name,
+            spec=spec
+        )
+
+        self.workspace.online_tables.create(table=online_table)
+
 
     def create_feature_spec(self):
         """
