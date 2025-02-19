@@ -41,7 +41,9 @@ class BasicModel:
         self.catalog_name = self.config.catalog_name
         self.schema_name = self.config.schema_name
         self.experiment_name = self.config.experiment_name_basic
-        self.model_name = f"{self.catalog_name}.{self.schema_name}.house_prices_model_basic"
+        self.model_name = (
+            f"{self.catalog_name}.{self.schema_name}.house_prices_model_basic"
+        )
         self.tags = tags.dict()
 
     def load_data(self):
@@ -52,9 +54,13 @@ class BasicModel:
         Target (y_train, y_test)
         """
         logger.info("🔄 Loading data from Databricks tables...")
-        self.train_set_spark = self.spark.table(f"{self.catalog_name}.{self.schema_name}.train_set")
+        self.train_set_spark = self.spark.table(
+            f"{self.catalog_name}.{self.schema_name}.train_set"
+        )
         self.train_set = self.train_set_spark.toPandas()
-        self.test_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.test_set").toPandas()
+        self.test_set = self.spark.table(
+            f"{self.catalog_name}.{self.schema_name}.test_set"
+        ).toPandas()
         self.data_version = "0"  # describe history -> retrieve
 
         self.X_train = self.train_set[self.num_features + self.cat_features]
@@ -73,11 +79,17 @@ class BasicModel:
         """
         logger.info("🔄 Defining preprocessing pipeline...")
         self.preprocessor = ColumnTransformer(
-            transformers=[("cat", OneHotEncoder(handle_unknown="ignore"), self.cat_features)], remainder="passthrough"
+            transformers=[
+                ("cat", OneHotEncoder(handle_unknown="ignore"), self.cat_features)
+            ],
+            remainder="passthrough",
         )
 
         self.pipeline = Pipeline(
-            steps=[("preprocessor", self.preprocessor), ("regressor", LGBMRegressor(**self.parameters))]
+            steps=[
+                ("preprocessor", self.preprocessor),
+                ("regressor", LGBMRegressor(**self.parameters)),
+            ]
         )
         logger.info("✅ Preprocessing pipeline defined.")
 
@@ -123,7 +135,9 @@ class BasicModel:
             )
             mlflow.log_input(dataset, context="training")
             mlflow.sklearn.log_model(
-                sk_model=self.pipeline, artifact_path="lightgbm-pipeline-model", signature=signature
+                sk_model=self.pipeline,
+                artifact_path="lightgbm-pipeline-model",
+                signature=signature,
             )
 
     def register_model(self):

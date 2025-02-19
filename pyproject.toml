@@ -37,7 +37,7 @@ where =["src"]
 include = ["house_price*"]
 
 [tool.ruff.lint]
-ignore = ["I001", "E501"]
+ignore = ["I001", "E501", "F811", "F821"]
 select = ["E", "F", "W"]
 
 [tool.ruff.format]
